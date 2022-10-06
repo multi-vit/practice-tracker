@@ -7,7 +7,8 @@ function dateIsValid(date) {
 }
 
 router.get("/", async function (req, res, next) {
-  let response = await practices.findOne();
+  //Return all practices from newest to oldest
+  let response = await practices.find({}, { sort: { date: -1 } }).toArray();
   console.log("Response received from DB");
   console.log(response);
   res.json({ body: response });
