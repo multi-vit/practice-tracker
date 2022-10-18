@@ -1,6 +1,14 @@
-import { StatusBar } from "expo-status-bar";
+import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  StatusBar,
+  Dimensions,
+} from "react-native";
 import { FlashList } from "@shopify/flash-list";
 
 export default function ReviewPractices() {
@@ -25,32 +33,41 @@ export default function ReviewPractices() {
   }, []);
 
   return (
-    <View>
-      <Text style={styles.pageHeading}>Review Practices</Text>
-      {isLoading ? (
-        <ActivityIndicator />
-      ) : practices.length > 0 ? (
-        <FlashList
-          data={practices}
-          renderItem={({ item, index }) => (
-            <View style={styles.box}>
-              <Text style={styles.boxHeading}>Practice {index + 1}</Text>
-              <Text>Date: {new Date(item.date).toDateString()}</Text>
-              <Text>Minutes practiced: {item.length}</Text>
-              <Text>What was practised: {item.practiced}</Text>
-              {item.piece ? (
-                <Text style={styles.boxSubHeading}>Piece details:</Text>
-              ) : null}
-              <Text>Composer: {item.piece.composer}</Text>
-              <Text>Title: {item.piece.title}</Text>
-            </View>
-          )}
-          estimatedItemSize={155}
-        />
-      ) : (
-        <Text>We have no practices to show you!</Text>
-      )}
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View
+        style={{
+          height: Dimensions.get("screen").height - 150,
+          width: Dimensions.get("screen").width,
+        }}
+      >
+        {isLoading ? (
+          <ActivityIndicator />
+        ) : practices.length > 0 ? (
+          <FlashList
+            data={practices}
+            renderItem={({ item, index }) => (
+              <View style={styles.box}>
+                <Text style={styles.boxHeading}>Practice {index + 1}</Text>
+                <Text>Date: {new Date(item.date).toDateString()}</Text>
+                <Text>Minutes practiced: {item.length}</Text>
+                <Text>What was practised: {item.practiced}</Text>
+                {item.piece ? (
+                  <>
+                    <Text style={styles.boxSubHeading}>Piece details:</Text>
+                    <Text>Composer: {item.piece.composer}</Text>
+                    <Text>Title: {item.piece.title}</Text>
+                  </>
+                ) : null}
+              </View>
+            )}
+            estimatedItemSize={155}
+          />
+        ) : (
+          <Text>We have no practices to show you!</Text>
+        )}
+      </View>
+      <ExpoStatusBar hidden={true} />
+    </SafeAreaView>
   );
 }
 
@@ -60,6 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+    //paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   box: {
     borderRadius: 10,
