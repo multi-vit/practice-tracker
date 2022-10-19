@@ -62,22 +62,38 @@ export default function AddPractice() {
       practiced: "",
     },
   });
-  const onSubmit = (data) => console.log(data);
-  //TODO Before sending to backend, strip potential leading zeros from number and typecast to number as will be a string (does typecasting to number automatically remove leading zeroes!?)
+  const onSubmit = (data) => {
+    addPractice(data);
+  };
 
-  /* 
-  async function addPractice() {
+  //TODO Add backend options for Practiced (and fetch these to populate dropdown)??
+
+  async function addPractice(practice) {
+    //Strip any potential leading 0s from length and typecast to Number
+    practice.length = parseInt(practice.length, 10);
+    //Check practice object for empty or undefined values and remove them (only date and length are required)
+    for (const key in practice) {
+      if (practice[key] === undefined || practice[key] === "") {
+        delete practice[key];
+      }
+    }
+    console.log("Here is the modified practice object");
+    console.log(practice);
     try {
-      const response = await fetch("http://192.168.1.196:3000/api/practice");
+      const response = await fetch("http://192.168.1.196:3000/api/practice", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(practice),
+      });
       const json = await response.json();
       console.log(json.body);
-      setPractices(json.body);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
-  } */
+  }
 
   return (
     <SafeAreaView style={styles.container}>
