@@ -77,6 +77,20 @@ export default function AddPractice() {
         delete practice[key];
       }
     }
+    if (practice.composer && practice.title) {
+      practice.piece = { composer: practice.composer, title: practice.title };
+      delete practice.composer;
+      delete practice.title;
+    } else {
+      if (practice.composer) {
+        practice.piece = { composer: practice.composer };
+        delete practice.composer;
+      }
+      if (practice.title) {
+        practice.piece = { title: practice.title };
+        delete practice.title;
+      }
+    }
     console.log("Here is the modified practice object");
     console.log(practice);
     try {
