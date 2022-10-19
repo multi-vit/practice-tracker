@@ -2,14 +2,17 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
+  Button,
   StyleSheet,
   SafeAreaView,
   StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import SelectList from "react-native-dropdown-select-list";
 
 export default function AddPractice() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -19,6 +22,17 @@ export default function AddPractice() {
   let year = today.getFullYear();
   let currentDate = `${day}-${month}-${year}`;
   const [selectedDate, setSelectedDate] = useState(currentDate);
+
+  const [selectedPracticeOption, setSelectedPracticeOption] = useState(null);
+  const practiceOptions = [
+    "Piece",
+    "Scales",
+    "Improvising",
+    "Theory",
+    "Aural",
+    "Sight Reading",
+    "Excerpt",
+  ];
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -39,17 +53,18 @@ export default function AddPractice() {
 
   const {
     control,
-    register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      date: "",
+      date: today,
       length: "",
+      practiced: "",
     },
   });
   const onSubmit = (data) => console.log(data);
+  //TODO Before sending to backend, strip potential leading zeros from number and typecast to number as will be a string (does typecasting to number automatically remove leading zeroes!?)
+
   /* 
   async function addPractice() {
     try {
@@ -69,12 +84,12 @@ export default function AddPractice() {
       <Controller
         control={control}
         rules={{
-          required: true,
+          required: "Date is required",
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <>
             <TouchableOpacity onPress={showDatePicker} style={styles.input}>
-              <Text>{selectedDate}</Text>
+              <Text>Date: {selectedDate}</Text>
             </TouchableOpacity>
             <DateTimePickerModal
               isVisible={isDatePickerVisible}
@@ -92,10 +107,24 @@ export default function AddPractice() {
         )}
         name='date'
       />
+      {errors.date && (
+        <View style={{ marginBottom: 12 }}>
+          <Text>{errors.date?.message}</Text>
+        </View>
+      )}
+
       <Controller
         control={control}
         rules={{
-          required: true,
+          required: "Length is required",
+          pattern: {
+            value: /^\d+$/,
+            message: "Must be a whole number",
+          },
+          min: {
+            value: 1,
+            message: "Minimum value is 1",
+          },
         }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
@@ -109,12 +138,86 @@ export default function AddPractice() {
         )}
         name='length'
       />
-      {errors.date && <Text>This is required.</Text>}
-      {errors.length && <Text>This is required.</Text>}
+      {errors.length && (
+        <View style={{ marginBottom: 12 }}>
+          <Text>{errors.length?.message}</Text>
+        </View>
+      )}
 
-      <TouchableOpacity style={styles.input} onPress={handleSubmit(onSubmit)}>
-        <Text>Submit</Text>
-      </TouchableOpacity>
+      <Controller
+        control={control}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <SelectList
+            placeholder='What have you practiced?'
+            data={practiceOptions}
+            search={false}
+            boxStyles={{ marginBottom: 12 }}
+            onBlur={onBlur}
+            setSelected={(selected) => {
+              onChange(selected);
+              setSelectedPracticeOption(selected);
+            }}
+            value={value}
+          />
+        )}
+        name='practiced'
+      />
+      {errors.practiced && (
+        <View style={{ marginBottom: 12 }}>
+          <Text>{errors.practiced?.message}</Text>
+        </View>
+      )}
+
+      {selectedPracticeOption === "Piece" ||
+      selectedPracticeOption === "Excerpt" ? (
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder='Piece Composer'
+              style={styles.input}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
+          name='composer'
+        />
+      ) : null}
+      {errors.composer && (
+        <View style={{ marginBottom: 12 }}>
+          <Text>{errors.composer?.message}</Text>
+        </View>
+      )}
+      {selectedPracticeOption === "Piece" ||
+      selectedPracticeOption === "Excerpt" ? (
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder='Piece Title'
+              style={styles.input}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
+          name='title'
+        />
+      ) : null}
+      {errors.title && (
+        <View style={{ marginBottom: 12 }}>
+          <Text>{errors.title?.message}</Text>
+        </View>
+      )}
+
+      <Button
+        style={styles.input}
+        title='Submit'
+        onPress={handleSubmit(onSubmit)}
+        accessibilityLabel='Submit the form'
+      />
+
       <ExpoStatusBar hidden={true} />
     </SafeAreaView>
   );
@@ -127,13 +230,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     //paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  box: {
-    borderRadius: 10,
-    borderColor: "red",
-    borderWidth: 5,
-    padding: 5,
-    margin: 10,
   },
   pageHeading: {
     fontWeight: "bold",
@@ -149,8 +245,9 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    margin: 12,
+    marginBottom: 12,
     borderWidth: 1,
+    borderRadius: 10,
     padding: 10,
   },
 });
