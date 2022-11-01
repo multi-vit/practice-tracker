@@ -41,28 +41,23 @@ router.post("/", async function (req, res, next) {
         if (req.body.practiced) {
           document.practiced = req.body.practiced;
         }
-        if (
-          (req.body.piece &&
-            req.body.piece.title &&
-            req.body.piece.title.length > 0) ||
-          (req.body.piece &&
-            req.body.piece.composer &&
-            req.body.piece.composer.length > 0)
-        ) {
-          //If either title or composer is present, add them or if both, add both
-          if (req.body.piece.title) {
-            document.piece = { title: req.body.piece.title };
-          }
-          if (req.body.piece.composer) {
-            document.piece = { composer: req.body.piece.composer };
-          }
-          if (req.body.piece.title && req.body.piece.composer) {
-            document.piece = {
-              title: req.body.piece.title,
-              composer: req.body.piece.composer,
-            };
-          }
+        if (req.body.comment) {
+          document.comment = req.body.comment;
         }
+        //If either title or composer is present, add them or if both, add both
+        if (req.body.piece?.title) {
+          document.piece = { title: req.body.piece.title };
+        }
+        if (req.body.piece?.composer) {
+          document.piece = { composer: req.body.piece.composer };
+        }
+        if (req.body.piece?.title && req.body.piece?.composer) {
+          document.piece = {
+            title: req.body.piece.title,
+            composer: req.body.piece.composer,
+          };
+        }
+
         //Insert the document to the DB
         let response = await practices.insertOne(document);
         console.log("Response received from DB");
