@@ -2,6 +2,7 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Button,
   StyleSheet,
   Text,
   View,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 
-export default function ReviewPractices() {
+export default function ReviewPractices({ navigation }) {
   const [isLoading, setLoading] = useState(true);
   const [practices, setPractices] = useState([]);
 
@@ -40,6 +41,12 @@ export default function ReviewPractices() {
           width: Dimensions.get("screen").width,
         }}
       >
+        <Button
+          style={styles.navButton}
+          title='Add a practice'
+          onPress={() => navigation.navigate("Add Practice")}
+          accessibilityLabel='Go to Add Practices page'
+        />
         {isLoading ? (
           <ActivityIndicator />
         ) : practices.length > 0 ? (

@@ -9,12 +9,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
+  Keyboard,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import SelectList from "react-native-dropdown-select-list";
 
-export default function AddPractice() {
+export default function AddPractice({ navigation }) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const today = new Date();
   let day = today.getDate();
@@ -73,10 +75,11 @@ export default function AddPractice() {
     practice.length = parseInt(practice.length, 10);
     //Check practice object for empty or undefined values and remove them (only date and length are required)
     for (const key in practice) {
-      if (practice[key] === undefined || practice[key] === "") {
+      if (!practice[key]) {
         delete practice[key];
       }
     }
+    //Construct piece object if present
     if (practice.composer && practice.title) {
       practice.piece = { composer: practice.composer, title: practice.title };
       delete practice.composer;
@@ -109,147 +112,187 @@ export default function AddPractice() {
     }
   }
 
+  const DismissKeyboard = ({ children }) => (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      {children}
+    </TouchableWithoutFeedback>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Controller
-        control={control}
-        rules={{
-          required: "Date is required",
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <>
-            <TouchableOpacity onPress={showDatePicker} style={styles.input}>
-              <Text>Date: {selectedDate}</Text>
-            </TouchableOpacity>
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode='date'
-              firstDayOfWeek={1}
-              onConfirm={(date) => {
-                onChange(date);
-                handleConfirm(date);
-              }}
-              onCancel={hideDatePicker}
+    <DismissKeyboard>
+      <SafeAreaView style={styles.container}>
+        <Controller
+          control={control}
+          rules={{
+            required: "Date is required",
+          }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <>
+              <TouchableOpacity onPress={showDatePicker} style={styles.input}>
+                <Text>Date: {selectedDate}</Text>
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode='date'
+                firstDayOfWeek={1}
+                onConfirm={(date) => {
+                  onChange(date);
+                  handleConfirm(date);
+                }}
+                onCancel={hideDatePicker}
+                onBlur={onBlur}
+                value={value}
+              />
+            </>
+          )}
+          name='date'
+        />
+        {errors.date && (
+          <View style={{ marginBottom: 12 }}>
+            <Text>{errors.date?.message}</Text>
+          </View>
+        )}
+
+        <Controller
+          control={control}
+          rules={{
+            required: "Length is required",
+            pattern: {
+              value: /^\d+$/,
+              message: "Must be a whole number",
+            },
+            min: {
+              value: 1,
+              message: "Minimum value is 1",
+            },
+          }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder='Length of practice (in minutes)'
+              style={styles.input}
               onBlur={onBlur}
+              onChangeText={onChange}
               value={value}
+              keyboardType='numeric'
             />
-          </>
+          )}
+          name='length'
+        />
+        {errors.length && (
+          <View style={{ marginBottom: 12 }}>
+            <Text>{errors.length?.message}</Text>
+          </View>
         )}
-        name='date'
-      />
-      {errors.date && (
-        <View style={{ marginBottom: 12 }}>
-          <Text>{errors.date?.message}</Text>
-        </View>
-      )}
 
-      <Controller
-        control={control}
-        rules={{
-          required: "Length is required",
-          pattern: {
-            value: /^\d+$/,
-            message: "Must be a whole number",
-          },
-          min: {
-            value: 1,
-            message: "Minimum value is 1",
-          },
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            placeholder='Length of practice (in minutes)'
-            style={styles.input}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            keyboardType='numeric'
+        <TouchableWithoutFeedback
+          onPress={() => {
+            console.log("Touched");
+            Keyboard.dismiss();
+          }}
+        >
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <SelectList
+                placeholder='What have you practiced?'
+                data={practiceOptions}
+                search={false}
+                boxStyles={{ marginBottom: 12 }}
+                onBlur={onBlur}
+                setSelected={(selected) => {
+                  onChange(selected);
+                  setSelectedPracticeOption(selected);
+                }}
+                value={value}
+              />
+            )}
+            name='practiced'
           />
+        </TouchableWithoutFeedback>
+        {errors.practiced && (
+          <View style={{ marginBottom: 12 }}>
+            <Text>{errors.practiced?.message}</Text>
+          </View>
         )}
-        name='length'
-      />
-      {errors.length && (
-        <View style={{ marginBottom: 12 }}>
-          <Text>{errors.length?.message}</Text>
-        </View>
-      )}
 
-      <Controller
-        control={control}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <SelectList
-            placeholder='What have you practiced?'
-            data={practiceOptions}
-            search={false}
-            boxStyles={{ marginBottom: 12 }}
-            onBlur={onBlur}
-            setSelected={(selected) => {
-              onChange(selected);
-              setSelectedPracticeOption(selected);
-            }}
-            value={value}
+        {selectedPracticeOption === "Piece" ||
+        selectedPracticeOption === "Excerpt" ? (
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder='Piece Composer'
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+            name='composer'
           />
+        ) : null}
+        {errors.composer && (
+          <View style={{ marginBottom: 12 }}>
+            <Text>{errors.composer?.message}</Text>
+          </View>
         )}
-        name='practiced'
-      />
-      {errors.practiced && (
-        <View style={{ marginBottom: 12 }}>
-          <Text>{errors.practiced?.message}</Text>
-        </View>
-      )}
+        {selectedPracticeOption === "Piece" ||
+        selectedPracticeOption === "Excerpt" ? (
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder='Piece Title'
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+            name='title'
+          />
+        ) : null}
+        {errors.title && (
+          <View style={{ marginBottom: 12 }}>
+            <Text>{errors.title?.message}</Text>
+          </View>
+        )}
 
-      {selectedPracticeOption === "Piece" ||
-      selectedPracticeOption === "Excerpt" ? (
         <Controller
           control={control}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              placeholder='Piece Composer'
+              placeholder='Comments (e.g. What to practise next time'
               style={styles.input}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
             />
           )}
-          name='composer'
+          name='comment'
         />
-      ) : null}
-      {errors.composer && (
-        <View style={{ marginBottom: 12 }}>
-          <Text>{errors.composer?.message}</Text>
-        </View>
-      )}
-      {selectedPracticeOption === "Piece" ||
-      selectedPracticeOption === "Excerpt" ? (
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder='Piece Title'
-              style={styles.input}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-          name='title'
+        {errors.practiced && (
+          <View style={{ marginBottom: 12 }}>
+            <Text>{errors.practiced?.message}</Text>
+          </View>
+        )}
+
+        <Button
+          style={styles.input}
+          title='Submit'
+          onPress={handleSubmit(onSubmit)}
+          accessibilityLabel='Submit the form'
         />
-      ) : null}
-      {errors.title && (
-        <View style={{ marginBottom: 12 }}>
-          <Text>{errors.title?.message}</Text>
-        </View>
-      )}
+        <Button
+          style={styles.navButton}
+          title='Go to Review Practices'
+          onPress={() => navigation.navigate("Review Practices")}
+          accessibilityLabel='Go to Review Practices page'
+        />
 
-      <Button
-        style={styles.input}
-        title='Submit'
-        onPress={handleSubmit(onSubmit)}
-        accessibilityLabel='Submit the form'
-      />
-
-      <ExpoStatusBar hidden={true} />
-    </SafeAreaView>
+        <ExpoStatusBar hidden={true} />
+      </SafeAreaView>
+    </DismissKeyboard>
   );
 }
 
@@ -274,6 +317,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
+    height: 40,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+  },
+  navButton: {
     height: 40,
     marginBottom: 12,
     borderWidth: 1,
