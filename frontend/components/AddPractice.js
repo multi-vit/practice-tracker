@@ -1,5 +1,5 @@
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
@@ -25,7 +25,7 @@ export default function AddPractice({ navigation }) {
   let currentDate = `${day}-${month}-${year}`;
   const [selectedDate, setSelectedDate] = useState(currentDate);
 
-  const [selectedPracticeOption, setSelectedPracticeOption] = useState(null);
+  const [selectedPracticeOption, setSelectedPracticeOption] = useState("");
   const practiceOptions = [
     "Piece",
     "Scales",
@@ -56,17 +56,28 @@ export default function AddPractice({ navigation }) {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState,
+    formState: { errors, isSubmitSuccessful },
   } = useForm({
     defaultValues: {
       date: today,
       length: "",
       practiced: "",
+      comment: "",
     },
   });
+
   const onSubmit = (data) => {
     addPractice(data);
   };
+
+  //Reset form on submit
+  useEffect(() => {
+    if (formState.isSubmitSuccessful) {
+      reset();
+    }
+  }, [formState, reset]);
 
   //TODO Add backend options for Practiced (and fetch these to populate dropdown)??
 
@@ -262,7 +273,7 @@ export default function AddPractice({ navigation }) {
           control={control}
           render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              placeholder='Comments (e.g. What to practise next time'
+              placeholder='Comments (e.g. What to practise next time)'
               style={styles.input}
               onBlur={onBlur}
               onChangeText={onChange}
@@ -282,6 +293,14 @@ export default function AddPractice({ navigation }) {
           title='Submit'
           onPress={handleSubmit(onSubmit)}
           accessibilityLabel='Submit the form'
+        />
+        <Button
+          style={styles.input}
+          title='Reset'
+          onPress={() => {
+            reset();
+          }}
+          accessibilityLabel='Reset the form'
         />
         <Button
           style={styles.navButton}
