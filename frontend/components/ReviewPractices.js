@@ -54,17 +54,26 @@ export default function ReviewPractices({ navigation }) {
             data={practices}
             renderItem={({ item, index }) => (
               <View style={styles.box}>
-                <Text style={styles.boxHeading}>Practice {index + 1}</Text>
+                <Text style={styles.boxHeading}>
+                  Practice {practices.length - index}
+                </Text>
                 <Text>Date: {new Date(item.date).toDateString()}</Text>
                 <Text>Minutes practiced: {item.length}</Text>
-                <Text>What was practised: {item.practiced}</Text>
+                {item.practiced ? (
+                  <Text>What was practised: {item.practiced}</Text>
+                ) : null}
                 {item.piece ? (
                   <>
                     <Text style={styles.boxSubHeading}>Piece details:</Text>
-                    <Text>Composer: {item.piece.composer}</Text>
-                    <Text>Title: {item.piece.title}</Text>
+                    {item.piece.composer ? (
+                      <Text>Composer: {item.piece.composer}</Text>
+                    ) : null}
+                    {item.piece.title ? (
+                      <Text>Title: {item.piece.title}</Text>
+                    ) : null}
                   </>
                 ) : null}
+                {item.comment ? <Text>Comment: {item.comment}</Text> : null}
               </View>
             )}
             estimatedItemSize={155}
